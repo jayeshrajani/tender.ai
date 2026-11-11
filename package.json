@@ -1,0 +1,24 @@
+{
+  "name": "tenderos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TenderOS – tender intelligence for Madhya Pradesh construction contractors",
+  "packageManager": "pnpm@11.18.0",
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "dev": "bash scripts/dev.sh",
+    "dev:web": "pnpm --filter @tenderos/web dev",
+    "dev:api": "cd apps/api && .venv/bin/uvicorn app.main:app --reload --port 8010",
+    "dev:worker": "cd apps/api && PYTHONPATH=../worker .venv/bin/python -m worker.main",
+    "seed": "cd apps/api && .venv/bin/python -m app.seed",
+    "seed:reanchor": "cd apps/api && .venv/bin/python -m app.seed --reanchor-demo",
+    "test": "pnpm test:api && pnpm test:web",
+    "test:api": "cd apps/api && .venv/bin/python -m pytest",
+    "test:web": "pnpm --filter @tenderos/web test",
+    "lint": "pnpm --filter @tenderos/web lint && cd apps/api && .venv/bin/ruff check app tests",
+    "typecheck": "pnpm --filter @tenderos/web typecheck"
+  },
+  "devDependencies": {
+    "shadcn": "^4.23.0"
+  }
+}

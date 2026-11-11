@@ -1,0 +1,100 @@
+# TenderOS local stack: postgres, redis (optional), minio, api, worker, web.
+# Usage:  cp .env.example .env  &&  docker compose up --build
+#         docker compose run --rm api python -m app.seed
+name: tenderos
+
+x-api-env: &api-env
+  TENDEROS_ENVIRONMENT: ${TENDEROS_ENVIRONMENT:-development}
+  TENDEROS_DATABASE_URL: postgresql+psycopg://tenderos:${POSTGRES_PASSWORD:-tenderos-local}@postgres:5432/tenderos
+  TENDEROS_APP_URL: ${TENDEROS_APP_URL:-http://localhost:3010}
+  TENDEROS_SIGNING_SECRET: ${TENDEROS_SIGNING_SECRET:-dev-only-signing-secret-change-me}
+  TENDEROS_COOKIE_SECURE: ${TENDEROS_COOKIE_SECURE:-false}
+  TENDEROS_STORAGE_BACKEND: s3
+  TENDEROS_S3_ENDPOINT_URL: http://minio:9000
+  TENDEROS_S3_BUCKET: tenderos
+  TENDEROS_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-tenderos}
+  TENDEROS_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-tenderos-local-secret}
+  TENDEROS_WHATSAPP_MODE: ${TENDEROS_WHATSAPP_MODE:-simulated}
+  TENDEROS_WHATSAPP_API_VERSION: ${TENDEROS_WHATSAPP_API_VERSION:-v21.0}
+  TENDEROS_WHATSAPP_PHONE_NUMBER_ID: ${TENDEROS_WHATSAPP_PHONE_NUMBER_ID:-}
+  TENDEROS_WHATSAPP_WABA_ID: ${TENDEROS_WHATSAPP_WABA_ID:-}
+  TENDEROS_WHATSAPP_ACCESS_TOKEN: ${TENDEROS_WHATSAPP_ACCESS_TOKEN:-}
+  TENDEROS_WHATSAPP_APP_SECRET: ${TENDEROS_WHATSAPP_APP_SECRET:-}
+  TENDEROS_WHATSAPP_VERIFY_TOKEN: ${TENDEROS_WHATSAPP_VERIFY_TOKEN:-}
+  TENDEROS_DEMO_SEED_PASSWORD: ${TENDEROS_DEMO_SEED_PASSWORD:-tenderos-demo-2026}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: tenderos
+      POSTGRES_USER: tenderos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tenderos-local}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenderos -d tenderos"]
+      interval: 5s
+      retries: 20
+
+  # Reserved for a future job queue. The V1 worker schedules through Postgres slot locks.
+  redis:
+    image: redis:7-alpine
+    profiles: ["queue"]
+    ports: ["127.0.0.1:6379:6379"]
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tenderos}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-tenderos-local-secret}
+    volumes: [miniodata:/data]
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      retries: 20
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      sh -c "mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD} &&
+             mc mb --ignore-existing local/tenderos && mc anonymous set none local/tenderos"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tenderos}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-tenderos-local-secret}
+
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment: *api-env
+    depends_on:
+      postgres: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    ports: ["127.0.0.1:8010:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      retries: 10
+
+  worker:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: ["python", "-m", "worker.main"]
+    environment: *api-env
+    depends_on:
+      api: { condition: service_healthy }
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args: { TENDEROS_API_INTERNAL_URL: http://api:8000 }
+    depends_on:
+      api: { condition: service_healthy }
+    ports: ["127.0.0.1:3010:3000"]
+
+volumes:
+  pgdata:
+  miniodata:
