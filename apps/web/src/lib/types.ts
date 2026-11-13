@@ -262,9 +262,12 @@ export interface SourceItem {
   last_failure_at: string | null;
   last_error: string | null;
   tender_count: number;
+  history: DayHealth[];
   last_run: { status: string; started_at: string; message: string | null } | null;
   supports_import: boolean;
 }
+
+export type DayHealth = "up" | "degraded" | "down" | "skipped" | "none";
 
 export interface JobInfo {
   job: string;
@@ -280,6 +283,8 @@ export interface JobInfo {
 export interface SourcesResponse {
   schedule: {
     timezone: string;
+    history_end: string;
+    reanalysis_history: DayHealth[];
     reanalysis_times_ist: string[];
     digest_time_ist: string;
     current_slot: string;

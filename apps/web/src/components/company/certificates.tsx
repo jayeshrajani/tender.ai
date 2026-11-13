@@ -1,14 +1,35 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Download, ShieldCheck, Trash2, Upload } from "lucide-react";
+import {
+  AlertTriangle,
+  Award,
+  BadgeCheck,
+  Download,
+  Factory,
+  FileText,
+  HardHat,
+  HeartPulse,
+  IdCard,
+  Landmark,
+  type LucideIcon,
+  Plus,
+  Receipt,
+  ShieldCheck,
+  Trash2,
+  TrendingUp,
+  Upload,
+  Users,
+  Zap,
+} from "lucide-react";
 import { Fragment, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Chip } from "@/components/ui/display";
+import { Chip, StatusDot } from "@/components/ui/display";
 import { Field, Input, Select } from "@/components/ui/input";
 import { api, ApiError } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { formatBytes, formatDateIST, formatINR, toPaise } from "@/lib/format";
 import { useReference } from "@/lib/hooks";
 import type { Certificate } from "@/lib/types";
@@ -133,7 +154,7 @@ export function CertificateForm({ onDone, existing }: { onDone?: () => void; exi
             setFile(f);
             setErrors((x) => ({ ...x, file: validateCertificateFile(f) ?? "" }));
           }}
-          className="block w-full text-xs file:mr-3 file:h-8 file:rounded-md file:border file:border-line file:bg-surface file:px-3 file:text-xs file:font-medium hover:file:bg-subtle"
+          className="block w-full text-[13px] text-muted file:mr-3 file:h-8 file:rounded-full file:border-0 file:bg-subtle file:px-4 file:text-[13px] file:font-medium file:text-ink hover:file:bg-line"
         />
       </Field>
       {errors.form ? (
@@ -162,9 +183,8 @@ const EXPIRY_CHIP = {
   none: { tone: "muted" as const, label: "No expiry" },
 };
 
-export function CertificateTable({ certificates, canManage }: { certificates: Certificate[]; canManage: boolean }) {
+function useCertificateActions() {
   const qc = useQueryClient();
-  const [replacing, setReplacing] = useState<string | null>(null);
   const verify = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       api(`/api/v1/company/certificates/${id}/verification`, { method: "PATCH", json: { verification_status: status } }),
@@ -186,13 +206,145 @@ export function CertificateTable({ certificates, canManage }: { certificates: Ce
       toast.error(e instanceof Error ? e.message : "Could not open file");
     }
   }
+  return { verify, remove, open };
+}
+
+/* Settings-app style glyph colours (Apple system palette). */
+const TYPE_STYLE: Record<string, { color: string; Icon: LucideIcon }> = {
+  contractor_registration: { color: "#0a84ff", Icon: HardHat },
+  gst: { color: "#5e5ce6", Icon: Receipt },
+  pan: { color: "#64d2ff", Icon: IdCard },
+  turnover_certificate: { color: "#30d158", Icon: TrendingUp },
+  solvency: { color: "#34c759", Icon: Landmark },
+  experience: { color: "#ff9f0a", Icon: Award },
+  epf: { color: "#ff375f", Icon: Users },
+  esic: { color: "#ff453a", Icon: HeartPulse },
+  labour_licence: { color: "#bf5af2", Icon: BadgeCheck },
+  electrical_licence: { color: "#ffd60a", Icon: Zap },
+  udyam: { color: "#ac8e68", Icon: Factory },
+  iso: { color: "#8e8e93", Icon: ShieldCheck },
+};
+const OTHER_STYLE = { color: "#8e8e93", Icon: FileText };
+
+const VERIFY_DOT = {
+  verified: { tone: "ok" as const, label: "Verified" },
+  unverified: { tone: "warn" as const, label: "Unverified" },
+  rejected: { tone: "danger" as const, label: "Rejected" },
+};
+
+function WalletCard({ c, canManage, onReplace }: { c: Certificate; canManage: boolean; onReplace: () => void }) {
+  const { verify, remove, open } = useCertificateActions();
+  const { color, Icon } = TYPE_STYLE[c.cert_type] ?? OTHER_STYLE;
+  const v = VERIFY_DOT[c.verification_status];
+  const detail = [c.registration_class ? `Class ${c.registration_class}` : null, c.value_paise ? formatINR(c.value_paise) : null, c.issuer].filter(Boolean).join(" · ");
+  return (
+    <article aria-label={c.title} className="flex w-full flex-col rounded-[22px] bg-surface p-5">
+      <div className="flex items-start justify-between gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-[11px] text-white" style={{ background: color }}>
+          <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+        </span>
+        <StatusDot tone={v.tone}>{v.label}</StatusDot>
+      </div>
+      <p className="mt-4 text-xs text-muted">{c.type_label}</p>
+      <h3 className="mt-0.5 text-[17px] font-semibold leading-snug tracking-[-0.022em]">{c.title}</h3>
+      {c.number ? <p className="mt-1 truncate font-mono text-[13px] text-muted">{c.number}</p> : null}
+      {detail ? <p className="mt-0.5 truncate text-[13px] text-muted">{detail}</p> : null}
+
+      <div className="min-h-5 flex-1" aria-hidden />
+      <dl className="grid grid-cols-2 gap-3 border-t border-line pt-4 text-[13px]">
+        <div>
+          <dt className="text-xs text-muted">Expires</dt>
+          <dd className={cn("tabular mt-0.5 font-medium", c.expiry_state === "expired" ? "text-danger" : c.expiry_state === "expiring" ? "text-warn" : "")}>
+            {c.expires_on ? formatDateIST(c.expires_on) : "No expiry"}
+            {c.expiry_state === "expired" || c.expiry_state === "expiring" ? <span className="block text-xs font-normal">{EXPIRY_CHIP[c.expiry_state].label}</span> : null}
+          </dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="text-xs text-muted">File</dt>
+          <dd className="mt-0.5">
+            {c.document ? (
+              <button type="button" onClick={() => void open(c.document!.id)} className="block max-w-full truncate font-medium text-accent hover:underline" title={c.document.filename}>
+                {c.document.filename}
+              </button>
+            ) : (
+              <span className="font-medium text-danger">Missing</span>
+            )}
+            {c.document ? <span className="block text-xs text-muted">{formatBytes(c.document.size_bytes)}</span> : null}
+          </dd>
+        </div>
+      </dl>
+
+      {canManage ? (
+        <div className="mt-4 flex items-center gap-1">
+          {c.verification_status !== "verified" && c.document ? (
+            <Button size="sm" variant="primary" onClick={() => verify.mutate({ id: c.id, status: "verified" })} title="Confirm you checked the original against the issuing authority">
+              Mark verified
+            </Button>
+          ) : null}
+          {c.verification_status === "verified" ? (
+            <Button size="sm" onClick={() => verify.mutate({ id: c.id, status: "unverified" })}>
+              Unverify
+            </Button>
+          ) : null}
+          <span className="flex-1" />
+          <Button size="icon" variant="quiet" aria-label={`${c.document ? "Replace file for" : "Upload file for"} ${c.title}`} title={c.document ? "Replace file" : "Upload file"} onClick={onReplace}>
+            <Upload />
+          </Button>
+          <Button size="icon" variant="quiet" aria-label={`Delete ${c.title}`} title="Delete" onClick={() => remove.mutate(c.id)}>
+            <Trash2 />
+          </Button>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+export function CertificateWallet({
+  certificates,
+  canManage,
+  onAdd,
+  onReplace,
+}: {
+  certificates: Certificate[];
+  canManage: boolean;
+  onAdd?: () => void;
+  onReplace: (c: Certificate) => void;
+}) {
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {certificates.map((c) => (
+        <li key={c.id} className="flex">
+          <WalletCard c={c} canManage={canManage} onReplace={() => onReplace(c)} />
+        </li>
+      ))}
+      {canManage && onAdd ? (
+        <li className="flex">
+          <button
+            type="button"
+            onClick={onAdd}
+            className="flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-[22px] border-2 border-dashed border-line-strong text-muted transition-colors duration-150 hover:border-accent hover:text-accent"
+          >
+            <span className="grid size-10 place-items-center rounded-full bg-subtle">
+              <Plus className="size-5" aria-hidden />
+            </span>
+            <span className="text-[15px] font-medium">Add certificate</span>
+          </button>
+        </li>
+      ) : null}
+    </ul>
+  );
+}
+
+export function CertificateTable({ certificates, canManage }: { certificates: Certificate[]; canManage: boolean }) {
+  const [replacing, setReplacing] = useState<string | null>(null);
+  const { verify, remove, open } = useCertificateActions();
 
   if (!certificates.length) return <p className="text-xs text-muted">No certificates yet.</p>;
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] text-left text-sm">
         <caption className="sr-only">Company certificates</caption>
-        <thead className="border-b border-line text-2xs uppercase tracking-[0.05em] text-muted">
+        <thead className="border-b border-line text-xs text-muted">
           <tr>
             <th scope="col" className="py-2.5 pr-3 font-medium">Certificate</th>
             <th scope="col" className="px-3 py-2.5 font-medium">Status</th>

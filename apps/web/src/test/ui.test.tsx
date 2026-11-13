@@ -138,9 +138,9 @@ describe("eligibility display", () => {
     renderWithClient(<EligibilityMatrix tender={detail()} />);
     const list = screen.getByRole("list", { name: /Eligibility criteria/ });
     const rows = within(list).getAllByRole("listitem").filter((li) => li.parentElement === list);
-    expect(within(rows[0]!).getByText("PASS")).toBeInTheDocument();
-    expect(within(rows[1]!).getByText("FAIL")).toBeInTheDocument();
-    expect(within(rows[2]!).getByText("NEEDS VERIFICATION")).toBeInTheDocument();
+    expect(within(rows[0]!).getByText("Pass")).toBeInTheDocument();
+    expect(within(rows[1]!).getByText("Fail")).toBeInTheDocument();
+    expect(within(rows[2]!).getByText("Needs verification")).toBeInTheDocument();
     expect(within(rows[1]!).getByText(/Page 4 · Clause 3\.1\(b\)/)).toBeInTheDocument();
     expect(within(rows[1]!).getByText(/not less than Rs\. 992\.00 lakh/)).toBeInTheDocument();
     expect(within(rows[0]!).getByText("CA-certified turnover")).toBeInTheDocument();

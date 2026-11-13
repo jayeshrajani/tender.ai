@@ -68,10 +68,10 @@ export function Sidebar({ me, onNavigate }: { me: Me; onNavigate?: () => void })
   return (
     <nav aria-label="Main" className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-2.5 px-5">
-        <span className="grid size-8 rotate-[-6deg] place-items-center rounded-xl bg-gradient-to-br from-accent to-[#8b5cf6] font-display text-sm font-bold text-white shadow-[0_6px_16px_-6px_var(--accent)]">
+        <span className="grid size-7 place-items-center rounded-[8px] bg-ink text-[13px] font-semibold text-canvas">
           T
         </span>
-        <span className="font-display text-lg font-semibold tracking-[-0.02em]">TenderOS</span>
+        <span className="text-[17px] font-semibold tracking-[-0.022em]">TenderOS</span>
       </div>
 
       <div className="flex-1 space-y-6 overflow-y-auto px-3 pt-2">
@@ -89,8 +89,8 @@ export function Sidebar({ me, onNavigate }: { me: Me; onNavigate?: () => void })
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex h-9 items-center gap-3 rounded-xl px-2.5 text-[13px] transition-colors duration-150",
-                        active ? "bg-accent-soft font-medium text-accent-ink" : "text-muted hover:bg-subtle hover:text-ink",
+                        "flex h-9 items-center gap-3 rounded-[10px] px-2.5 text-[13px] transition-colors duration-150",
+                        active ? "bg-subtle font-medium text-ink" : "text-muted hover:bg-subtle/70 hover:text-ink",
                       )}
                     >
                       <Icon className={cn("size-4", active ? "text-accent" : "text-faint")} aria-hidden />
@@ -105,8 +105,8 @@ export function Sidebar({ me, onNavigate }: { me: Me; onNavigate?: () => void })
       </div>
 
       {me.active_company?.is_demo ? (
-        <div className="m-3 rounded-2xl bg-gradient-to-br from-accent-soft to-subtle p-3 text-2xs leading-relaxed text-muted">
-          <p className="mb-0.5 flex items-center gap-1.5 font-semibold text-accent-ink">
+        <div className="m-3 rounded-2xl bg-subtle p-3 text-2xs leading-relaxed text-muted">
+          <p className="mb-0.5 flex items-center gap-1.5 font-semibold text-ink">
             <Sparkles className="size-3.5" aria-hidden /> Demo playground
           </p>
           Fictional tenders to explore freely. Nothing here is live government data.
@@ -252,10 +252,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh lg:pl-64">
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[480px] bg-[radial-gradient(50%_70%_at_75%_0%,color-mix(in_oklab,var(--accent)_13%,transparent),transparent),radial-gradient(35%_50%_at_30%_0%,color-mix(in_oklab,#8b5cf6_9%,transparent),transparent)]"
-      />
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2">
         Skip to content
       </a>

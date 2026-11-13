@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, CircleDashed, CircleSlash, HelpCircle, XCircle } from "lucide-react";
+import { CircleDashed } from "lucide-react";
 import type * as React from "react";
 
 import { cn } from "@/lib/cn";
@@ -7,13 +7,13 @@ import type { EligibilityStatus, RequirementResult } from "@/lib/types";
 type Tone = "neutral" | "accent" | "ok" | "warn" | "danger" | "muted" | "outline";
 
 const tones: Record<Tone, string> = {
-  neutral: "bg-subtle text-ink border-line",
-  accent: "bg-accent-soft text-accent-ink border-accent-line",
-  ok: "bg-ok-soft text-ok border-ok-line",
-  warn: "bg-warn-soft text-warn border-warn-line",
-  danger: "bg-danger-soft text-danger border-danger-line",
-  muted: "bg-transparent text-muted border-line",
-  outline: "bg-surface text-ink border-line",
+  neutral: "bg-subtle text-muted",
+  accent: "bg-accent/10 text-accent-ink",
+  ok: "bg-ok/10 text-ok",
+  warn: "bg-warn/10 text-warn",
+  danger: "bg-danger/10 text-danger",
+  muted: "bg-subtle/70 text-muted",
+  outline: "bg-transparent text-muted ring-1 ring-inset ring-line-strong",
 };
 
 export function Chip({
@@ -25,7 +25,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-full border px-2 text-2xs font-medium [&_svg]:size-3",
+        "inline-flex h-[22px] items-center gap-1 whitespace-nowrap rounded-md px-2 text-[11px] font-medium [&_svg]:size-3",
         tones[tone],
         className,
       )}
@@ -36,55 +36,65 @@ export function Chip({
   );
 }
 
+const DOT: Record<"ok" | "warn" | "danger" | "muted", string> = {
+  ok: "bg-ok",
+  warn: "bg-warn",
+  danger: "bg-danger",
+  muted: "bg-line-strong",
+};
+
+export function StatusDot({ tone, children, className }: { tone: keyof typeof DOT; children: React.ReactNode; className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-ink", className)}>
+      <span aria-hidden className={cn("size-[7px] shrink-0 rounded-full", DOT[tone])} />
+      {children}
+    </span>
+  );
+}
+
 export function DemoBadge({ className }: { className?: string }) {
   return (
-    <Chip tone="outline" className={cn("font-mono tracking-wide text-muted", className)} title="Fictional DEMO record – not a real tender">
+    <Chip tone="neutral" className={cn("h-[18px] px-1.5 text-[10px] font-semibold tracking-wide", className)} title="Fictional DEMO record – not a real tender">
       DEMO
     </Chip>
   );
 }
 
-const ELIGIBILITY: Record<EligibilityStatus, { label: string; tone: Tone; Icon: typeof CheckCircle2 }> = {
-  ELIGIBLE: { label: "Eligible", tone: "ok", Icon: CheckCircle2 },
-  NEEDS_VERIFICATION: { label: "Needs verification", tone: "warn", Icon: AlertTriangle },
-  NOT_ELIGIBLE: { label: "Not eligible", tone: "danger", Icon: XCircle },
+const ELIGIBILITY: Record<EligibilityStatus, { label: string; tone: keyof typeof DOT }> = {
+  ELIGIBLE: { label: "Eligible", tone: "ok" },
+  NEEDS_VERIFICATION: { label: "Needs verification", tone: "warn" },
+  NOT_ELIGIBLE: { label: "Not eligible", tone: "danger" },
 };
 
 export function EligibilityChip({ status, className }: { status: EligibilityStatus; className?: string }) {
-  const { label, tone, Icon } = ELIGIBILITY[status];
+  const { label, tone } = ELIGIBILITY[status];
   return (
-    <Chip tone={tone} className={className}>
-      <Icon aria-hidden />
+    <StatusDot tone={tone} className={className}>
       {label}
-    </Chip>
+    </StatusDot>
   );
 }
 
-const RESULT: Record<RequirementResult, { label: string; tone: Tone; Icon: typeof CheckCircle2 }> = {
-  PASS: { label: "PASS", tone: "ok", Icon: CheckCircle2 },
-  FAIL: { label: "FAIL", tone: "danger", Icon: XCircle },
-  UNKNOWN: { label: "NEEDS VERIFICATION", tone: "warn", Icon: HelpCircle },
-  NOT_APPLICABLE: { label: "N/A", tone: "muted", Icon: CircleSlash },
+const RESULT: Record<RequirementResult, { label: string; tone: keyof typeof DOT }> = {
+  PASS: { label: "Pass", tone: "ok" },
+  FAIL: { label: "Fail", tone: "danger" },
+  UNKNOWN: { label: "Needs verification", tone: "warn" },
+  NOT_APPLICABLE: { label: "Not applicable", tone: "muted" },
 };
 
 export function ResultChip({ result }: { result: RequirementResult }) {
-  const { label, tone, Icon } = RESULT[result];
-  return (
-    <Chip tone={tone} className="font-semibold tracking-wide">
-      <Icon aria-hidden />
-      {label}
-    </Chip>
-  );
+  const { label, tone } = RESULT[result];
+  return <StatusDot tone={tone}>{label}</StatusDot>;
 }
 
 export function ScoreMeter({ score, className }: { score: number; className?: string }) {
   const pct = Math.max(0, Math.min(100, score));
   return (
     <div className={cn("flex items-center gap-2", className)} title={`Relevance ${pct.toFixed(0)} / 100`}>
-      <span className="tabular w-6 text-right text-sm font-semibold">{pct.toFixed(0)}</span>
-      <span className="relative h-1.5 w-14 overflow-hidden rounded-full bg-subtle" aria-hidden>
+      <span className="tabular w-6 text-right text-[13px] font-semibold">{pct.toFixed(0)}</span>
+      <span className="relative h-1 w-12 overflow-hidden rounded-full bg-subtle" aria-hidden>
         <span
-          className={cn("absolute inset-y-0 left-0 rounded-full", pct >= 70 ? "bg-gradient-to-r from-accent to-[#8b5cf6]" : pct >= 45 ? "bg-meter-mid" : "bg-line-strong")}
+          className={cn("absolute inset-y-0 left-0 rounded-full", pct >= 70 ? "bg-accent" : pct >= 45 ? "bg-meter-mid" : "bg-line-strong")}
           style={{ width: `${pct}%` }}
         />
       </span>
@@ -117,11 +127,11 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      <span className="mb-4 grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent">
+      <span className="mb-4 grid size-12 place-items-center rounded-full bg-subtle text-muted">
         <Icon className="size-5" aria-hidden />
       </span>
-      <p className="font-display text-base font-semibold">{title}</p>
-      {body ? <p className="mt-1 max-w-md text-xs text-muted">{body}</p> : null}
+      <p className="text-[15px] font-semibold">{title}</p>
+      {body ? <p className="mt-1 max-w-md text-[13px] text-muted">{body}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
@@ -145,19 +155,19 @@ export function Panel({
   id?: string;
 }) {
   return (
-    <section id={id} className={cn("rounded-2xl border border-line bg-surface shadow-card", className)} aria-labelledby={title && id ? `${id}-title` : undefined}>
+    <section id={id} className={cn("rounded-[22px] bg-surface", className)} aria-labelledby={title && id ? `${id}-title` : undefined}>
       {title ? (
-        <header className="flex items-start justify-between gap-3 px-5 pt-5">
+        <header className="flex items-start justify-between gap-3 px-6 pt-6">
           <div>
-            <h2 id={id ? `${id}-title` : undefined} className="text-base font-semibold tracking-[-0.01em]">
+            <h2 id={id ? `${id}-title` : undefined} className="text-[17px] font-semibold tracking-[-0.022em]">
               {title}
             </h2>
-            {description ? <p className="mt-0.5 text-xs text-muted">{description}</p> : null}
+            {description ? <p className="mt-0.5 text-[13px] text-muted">{description}</p> : null}
           </div>
           {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
         </header>
       ) : null}
-      <div className={cn("p-5", title && "pt-4", bodyClassName)}>{children}</div>
+      <div className={cn("p-6", title && "pt-4", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -174,11 +184,11 @@ export function PageHeader({
   eyebrow?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3 pb-6">
+    <div className="flex flex-wrap items-end justify-between gap-4 pb-8">
       <div className="min-w-0">
-        {eyebrow ? <p className="mb-1.5 text-sm font-medium text-accent">{eyebrow}</p> : null}
-        <h1 className="text-3xl font-semibold tracking-[-0.03em]">{title}</h1>
-        {description ? <p className="mt-1.5 max-w-2xl text-sm text-muted">{description}</p> : null}
+        {eyebrow ? <p className="mb-1 text-[15px] font-semibold text-accent">{eyebrow}</p> : null}
+        <h1 className="text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] md:text-[2.5rem]">{title}</h1>
+        {description ? <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
@@ -196,7 +206,7 @@ export function KeyValue({ label, children, className }: { label: string; childr
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
+    <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger">
       <span>{message}</span>
       {onRetry ? (
         <button type="button" onClick={onRetry} className="font-medium underline underline-offset-4">

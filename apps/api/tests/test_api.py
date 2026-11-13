@@ -166,3 +166,7 @@ def test_sources_never_claim_live(client_factory) -> None:  # type: ignore[no-un
     for banned in ("'live'", "synced", "all tenders"):
         assert banned not in text
     assert body["schedule"]["reanalysis_times_ist"] == ["00:00", "08:00", "16:00"]
+    assert len(body["schedule"]["reanalysis_history"]) == 30
+    assert all(len(s["history"]) == 30 for s in body["items"])
+    allowed = {"up", "degraded", "down", "skipped", "none"}
+    assert all(set(s["history"]) <= allowed for s in body["items"])

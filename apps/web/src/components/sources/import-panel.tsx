@@ -46,7 +46,7 @@ function RunResult({ result }: { result: ImportResult }) {
   return (
     <div role="status" className="mt-4 rounded-xl border border-line bg-subtle/50 p-4 text-xs">
       <div className="flex flex-wrap items-center gap-2">
-        <Chip tone={run.status === "succeeded" ? "ok" : run.status === "partial" ? "warn" : "danger"} className="uppercase">
+        <Chip tone={run.status === "succeeded" ? "ok" : run.status === "partial" ? "warn" : "danger"} className="capitalize">
           {run.status}
         </Chip>
         <span className="tabular text-muted">

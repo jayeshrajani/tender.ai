@@ -121,7 +121,8 @@ export function BusinessForm({ profile, submitLabel, step, onSaved, secondary, r
           <Input id="legal_name" {...form.register("legal_name")} />
         </Field>
         <Field label="Business type" htmlFor="business_type" error={e.business_type?.message} required>
-          <Select id="business_type" {...form.register("business_type")}>
+          {/* Remount once options load: RHF only writes the saved value into the DOM on registration. */}
+          <Select key={ref.data ? "ready" : "loading"} id="business_type" {...form.register("business_type")}>
             <option value="">Select…</option>
             {ref.data?.business_types.map((b) => (
               <option key={b} value={b}>
@@ -131,7 +132,7 @@ export function BusinessForm({ profile, submitLabel, step, onSaved, secondary, r
           </Select>
         </Field>
         <Field label="Base district" htmlFor="base_district" hint="Used as the centre for your operating radius.">
-          <Select id="base_district" {...form.register("base_district")}>
+          <Select key={ref.data ? "ready" : "loading"} id="base_district" {...form.register("base_district")}>
             <option value="">Select…</option>
             {ref.data?.districts.map((d) => (
               <option key={d}>{d}</option>
@@ -522,7 +523,7 @@ export function ExperienceManager({ profile, readOnly }: { profile: Profile; rea
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <caption className="sr-only">Similar completed projects</caption>
-            <thead className="border-b border-line text-2xs uppercase tracking-[0.05em] text-muted">
+            <thead className="border-b border-line text-xs text-muted">
               <tr>
                 <th scope="col" className="py-2 pr-3 font-medium">Project</th>
                 <th scope="col" className="px-3 py-2 font-medium">Category</th>

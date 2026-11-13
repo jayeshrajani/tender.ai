@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import Iterable
+from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
@@ -18,6 +20,8 @@ from app.services.timeutil import (
     next_digest_slot,
     next_reanalysis_slot,
     slot_key,
+    to_ist,
+    today_ist,
     utcnow,
 )
 from app.services.uploads import UploadError, validate_upload
@@ -28,6 +32,29 @@ ATTESTATION = (
     "I accessed this information on an official portal myself, completed any CAPTCHA personally, "
     "and am permitted to import it for my company's internal tender review."
 )
+
+
+HISTORY_DAYS = 30
+# Worst outcome of the day wins.
+_DAY_RANK = {"failed": 4, "partial": 3, "succeeded": 2, "skipped": 1}
+_DAY_STATUS = {"failed": "down", "partial": "degraded", "succeeded": "up", "skipped": "skipped"}
+
+
+def _daily_history(rows: Iterable[tuple[Any, datetime, str]]) -> dict[Any, list[str]]:
+    """Per key, one status per IST day, oldest first; days without runs are 'none'."""
+    first_day = today_ist() - timedelta(days=HISTORY_DAYS - 1)
+    worst: dict[Any, dict[int, str]] = {}
+    for key, started_at, run_status in rows:
+        idx = (to_ist(started_at).date() - first_day).days
+        if not 0 <= idx < HISTORY_DAYS or run_status not in _DAY_RANK:
+            continue
+        days = worst.setdefault(key, {})
+        if _DAY_RANK[run_status] > _DAY_RANK.get(days.get(idx, ""), 0):
+            days[idx] = run_status
+    return {
+        key: [_DAY_STATUS[days[i]] if i in days else "none" for i in range(HISTORY_DAYS)]
+        for key, days in worst.items()
+    }
 
 
 def _collection_state(s: SourceProvider) -> str:
@@ -77,9 +104,24 @@ def list_sources(ctx: Tenant, db: DB) -> dict[str, Any]:
     recent_jobs = db.scalars(jobs_q).all()
     now = utcnow()
     last_slot = latest_reanalysis_slot(now)
+    since = now - timedelta(days=HISTORY_DAYS + 1)
+    source_history = _daily_history(
+        db.execute(
+            _runs_query(ctx.org_id)
+            .where(SourceRun.started_at >= since)
+            .with_only_columns(SourceRun.source_id, SourceRun.started_at, SourceRun.status)
+        )
+    )
+    job_history = _daily_history(
+        db.execute(
+            select(JobRun.job, JobRun.started_at, JobRun.status).where(JobRun.started_at >= since)
+        )
+    )
     return {
         "schedule": {
             "timezone": "Asia/Kolkata",
+            "history_end": today_ist().isoformat(),
+            "reanalysis_history": job_history.get(jobs.REANALYSIS, ["none"] * HISTORY_DAYS),
             "reanalysis_times_ist": ["00:00", "08:00", "16:00"],
             "digest_time_ist": "09:00",
             "current_slot": slot_key(last_slot),
@@ -103,6 +145,7 @@ def list_sources(ctx: Tenant, db: DB) -> dict[str, Any]:
                 "health_message": (a.health().message if (a := get_adapter(s)) else "Not collected by TenderOS."),
                 "last_success_at": s.last_success_at, "last_failure_at": s.last_failure_at,
                 "last_error": s.last_error, "tender_count": counts.get(s.id, 0),
+                "history": source_history.get(s.id, ["none"] * HISTORY_DAYS),
                 "last_run": (
                     {"status": lr.status, "started_at": lr.started_at, "message": lr.message}
                     if (lr := last_runs.get(s.id)) else None

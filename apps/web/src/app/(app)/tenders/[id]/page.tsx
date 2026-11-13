@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Download, EyeOff, ExternalLink, FileText, Lock } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { EligibilityMatrix, ScoreBreakdown } from "@/components/tenders/eligibility";
@@ -14,7 +14,7 @@ import { Chip, DemoBadge, EligibilityChip, ErrorState, KeyValue, Panel, Skeleton
 import { Textarea } from "@/components/ui/input";
 import { api, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
-import { formatBytes, formatDateTimeIST, formatINR, titleCase } from "@/lib/format";
+import { formatBytes, formatDateTimeIST, formatINR, permissionLabel, titleCase } from "@/lib/format";
 import { canEdit, useMe } from "@/lib/hooks";
 import type { TenderDetail, TenderDocument } from "@/lib/types";
 
@@ -132,6 +132,10 @@ export default function TenderDetailPage() {
       void qc.invalidateQueries({ queryKey: ["tenders"] });
     },
   });
+  const loadedTitle = q.data?.title;
+  useEffect(() => {
+    if (loadedTitle) document.title = `${loadedTitle} · TenderOS`;
+  }, [loadedTitle]);
 
   if (q.isLoading) {
     return (
@@ -211,22 +215,22 @@ export default function TenderDetailPage() {
         </p>
       ) : null}
 
-      <section aria-label="Summary" className="mb-6 grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface shadow-card lg:grid-cols-5">
-        <div className="col-span-2 border-b border-line p-5 lg:border-b-0 lg:border-r">
+      <section aria-label="Summary" className="mb-6 grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-surface shadow-card sm:grid-cols-3 lg:grid-cols-5">
+        <div className="col-span-2 border-b border-line p-5 sm:col-span-3 lg:col-span-2 lg:border-b-0 lg:border-r">
           <p className="section-label mb-2">Eligibility</p>
           <EligibilityChip status={t.eligibility.status} />
           <p className="mt-2 text-xs leading-relaxed text-muted">{t.eligibility.summary}</p>
         </div>
-        <div className="border-b border-r border-line p-5 lg:border-b-0">
+        <div className="border-b border-r border-line p-5 sm:border-b-0">
           <p className="section-label mb-2">Relevance</p>
           <p className="tabular text-2xl font-semibold tracking-[-0.02em]">{t.relevance.score.toFixed(0)}<span className="text-xs font-normal text-muted"> / 100</span></p>
         </div>
-        <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
+        <div className="border-b border-line p-5 sm:border-b-0 sm:border-r">
           <p className="section-label mb-2">Estimated value</p>
           <p className="tabular text-2xl font-semibold tracking-[-0.02em]">{formatINR(t.estimated_value_paise)}</p>
           <p className="tabular text-2xs text-muted">EMD {formatINR(t.emd_paise)}</p>
         </div>
-        <div className="col-span-2 p-5 lg:col-span-1">
+        <div className="col-span-2 p-5 sm:col-span-1">
           <p className="section-label mb-2">Submission deadline</p>
           <DeadlineCell row={t} />
         </div>
@@ -344,7 +348,7 @@ export default function TenderDetailPage() {
             <dl className="space-y-2.5">
               <KeyValue label="Source">{t.provenance.source_name}</KeyValue>
               <KeyValue label="Retrieval method">{RETRIEVAL[t.provenance.retrieval_method] ?? t.provenance.retrieval_method}</KeyValue>
-              <KeyValue label="Permission">{titleCase(t.provenance.permission_status)}</KeyValue>
+              <KeyValue label="Permission">{permissionLabel(t.provenance.permission_status)}</KeyValue>
               <KeyValue label="Imported">
                 {formatDateTimeIST(t.provenance.imported_at)}
                 {t.provenance.imported_by ? ` by ${t.provenance.imported_by}` : ""}

@@ -11,10 +11,10 @@ const POINTS = [
 function Logo() {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="grid size-8 rotate-[-6deg] place-items-center rounded-xl bg-gradient-to-br from-accent to-[#8b5cf6] font-display text-sm font-bold text-white shadow-[0_6px_16px_-6px_var(--accent)]">
+      <span className="grid size-7 place-items-center rounded-[8px] bg-ink text-[13px] font-semibold text-canvas">
         T
       </span>
-      <span className="font-display text-lg font-semibold tracking-[-0.02em]">TenderOS</span>
+      <span className="text-[17px] font-semibold tracking-[-0.022em]">TenderOS</span>
     </div>
   );
 }

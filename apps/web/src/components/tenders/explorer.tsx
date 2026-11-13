@@ -73,7 +73,7 @@ function SavedViews({ current }: { current: string }) {
       <PopoverTrigger asChild>
         <Button size="sm" className="h-8 rounded-full px-3">
           <Bookmark />
-          Views
+          Saved views
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72 p-2">
@@ -208,7 +208,7 @@ export function TenderExplorer() {
             <PopoverTrigger asChild>
               <Button size="sm" className="h-8 rounded-full px-3">
                 <SlidersHorizontal />
-                View
+                Display
                 {filters.saved || filters.include_closed || grouped ? <span className="size-1.5 rounded-full bg-accent" aria-label="options active" /> : null}
               </Button>
             </PopoverTrigger>

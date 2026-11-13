@@ -117,7 +117,7 @@ export function SearchInput({ value, onChange, label = "Search tenders" }: { val
     return () => clearTimeout(t);
   }, [local, value, onChange]);
   return (
-    <div className="relative w-full sm:w-64">
+    <div className="relative w-full xl:w-64">
       <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-faint" aria-hidden />
       <label htmlFor="tender-search" className="sr-only">
         {label}

@@ -153,7 +153,7 @@ export default function NotificationsPage() {
                   ) : null}
                 </details>
                 <div className="flex flex-wrap items-start gap-1 md:justify-end">
-                  <Chip tone={STATUS_TONE[o.status] ?? "muted"} className="uppercase tracking-wide">
+                  <Chip tone={STATUS_TONE[o.status] ?? "muted"} className="capitalize">
                     {o.status.replace(/_/g, " ")}
                   </Chip>
                   <Chip tone="muted" className="font-mono">

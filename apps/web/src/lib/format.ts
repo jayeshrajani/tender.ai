@@ -85,3 +85,15 @@ export function formatBytes(n: number | null | undefined): string {
 export function titleCase(s: string): string {
   return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+const PERMISSION_LABEL: Record<string, string> = {
+  not_required_demo: "Fictional data, no permission needed",
+  operator_attested: "Operator-attested",
+  pending_authorization: "Awaiting written authorisation",
+  authorized: "Authorised",
+  link_only: "Link only, not collected",
+};
+
+export function permissionLabel(s: string): string {
+  return PERMISSION_LABEL[s] ?? titleCase(s);
+}

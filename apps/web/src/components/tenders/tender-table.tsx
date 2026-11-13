@@ -114,7 +114,7 @@ function SortHeader({
         type="button"
         aria-label={ariaLabel}
         onClick={() => onSort(sortKey)}
-        className={cn("inline-flex items-center gap-1 rounded uppercase tracking-[0.05em] hover:text-ink", active && "text-ink")}
+        className={cn("inline-flex items-center gap-1 rounded hover:text-ink", active && "text-ink")}
       >
         {label}
         <Icon className={cn("size-3", !active && "opacity-40")} aria-hidden />
@@ -143,7 +143,7 @@ export function TenderTable({ rows, loading, sort, order, onSort, canSave = true
       <div className="hidden overflow-x-auto xl:block">
         <table className="w-full min-w-[900px] border-collapse text-left">
           <caption className="sr-only">{caption}</caption>
-          <thead className="whitespace-nowrap border-b border-line bg-subtle/50 text-2xs uppercase tracking-[0.05em] text-muted">
+          <thead className="whitespace-nowrap border-b border-line text-xs text-muted">
             <tr>
               <th scope="col" className="w-10 px-2 py-2.5">
                 <span className="sr-only">Saved</span>
@@ -213,11 +213,11 @@ export function TenderTable({ rows, loading, sort, order, onSort, canSave = true
                   {r.issuing_organization} · {r.district ?? "District not stated"}
                 </span>
               </p>
-              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <div className="mt-3 grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-5 gap-y-2 sm:grid-cols-[9rem_5.5rem_minmax(0,1fr)_auto]">
                 <EligibilityChip status={r.eligibility_status} />
                 <span className="tabular text-sm font-medium">{formatINR(r.estimated_value_paise)}</span>
                 <DeadlineCell row={r} />
-                <ScoreMeter score={r.relevance_score} className="ml-auto" />
+                <ScoreMeter score={r.relevance_score} className="justify-self-end" />
               </div>
             </div>
           </li>

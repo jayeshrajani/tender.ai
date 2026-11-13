@@ -4,9 +4,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-display: "Bricolage Grotesque Variable", var(--font-geist-sans), ui-sans-serif, sans-serif;
+  /* System stack resolves to SF Pro on Apple devices (Text/Display switch by size). */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -40,90 +41,92 @@
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
 
-  --shadow-card: 0 1px 2px rgb(16 24 64 / 0.04), 0 4px 16px -6px rgb(16 24 64 / 0.06);
-  --shadow-pop: 0 16px 40px -14px rgb(16 24 64 / 0.28);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.03), 0 2px 10px rgb(0 0 0 / 0.03);
+  --shadow-pop: 0 12px 40px -12px rgb(0 0 0 / 0.22);
 
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 }
 
 :root {
   color-scheme: light;
-  --canvas: #f5f6fa;
+  --canvas: #f5f5f7;
   --surface: #ffffff;
-  --subtle: #eef0f6;
-  --raised: #fafbff;
-  --ink: #12141c;
-  --muted: #5d6478;
-  --faint: #8b91a3;
-  --line: #e5e8f0;
-  --line-strong: #cdd2de;
+  --subtle: #f0f0f2;
+  --raised: #fafafa;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --faint: #86868b;
+  --line: #e8e8ed;
+  --line-strong: #d2d2d7;
 
-  --accent: #3b5bfd;
-  --accent-hover: #2d4ae6;
-  --accent-soft: #eef1ff;
-  --accent-ink: #2a3bb8;
-  --accent-line: #d3dbff;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-soft: #e8f2fd;
+  --accent-ink: #0066cc;
+  --accent-line: #c6dcf5;
   --on-accent: #ffffff;
-  --meter-mid: #f5a524;
+  --meter-mid: #ff9f0a;
 
-  --ok: #127a46;
-  --ok-soft: #e7f7ee;
-  --ok-line: #bde5cd;
+  --ok: #248a3d;
+  --ok-soft: #eaf6ec;
+  --ok-line: #c3e6cb;
 
-  --warn: #9a5800;
-  --warn-soft: #fff5e2;
-  --warn-line: #f5d9a2;
-  --danger: #cc2338;
-  --danger-soft: #fdecef;
-  --danger-line: #f6c4cc;
+  --warn: #b25000;
+  --warn-soft: #fff4e5;
+  --warn-line: #fbd9a8;
+  --danger: #d70015;
+  --danger-soft: #fdecee;
+  --danger-line: #f7c5cb;
 }
 
 .dark {
   color-scheme: dark;
-  --canvas: #0b0d14;
-  --surface: #12151f;
-  --subtle: #1a1e2b;
-  --raised: #161a25;
-  --ink: #eceef6;
-  --muted: #9aa1b5;
-  --faint: #6b7287;
-  --line: #232838;
-  --line-strong: #333a4d;
+  --canvas: #000000;
+  --surface: #1c1c1e;
+  --subtle: #2c2c2e;
+  --raised: #242426;
+  --ink: #f5f5f7;
+  --muted: #a1a1a6;
+  --faint: #6e6e73;
+  --line: #2c2c2e;
+  --line-strong: #3a3a3c;
 
-  --accent: #7b91ff;
-  --accent-hover: #9aabff;
-  --accent-soft: #1a2147;
-  --accent-ink: #b9c5ff;
-  --accent-line: #2b3770;
-  --on-accent: #0b0f2a;
-  --meter-mid: #f0b45a;
+  --accent: #2997ff;
+  --accent-hover: #47a6ff;
+  --accent-soft: #0a2540;
+  --accent-ink: #64b5ff;
+  --accent-line: #12395f;
+  --on-accent: #ffffff;
+  --meter-mid: #ff9f0a;
 
-  --ok: #4fd08f;
-  --ok-soft: #0f2a1d;
-  --ok-line: #1d4a33;
+  --ok: #30d158;
+  --ok-soft: #0d2a16;
+  --ok-line: #174d27;
 
-  --warn: #f0b45a;
-  --warn-soft: #2a1f0c;
-  --warn-line: #4d3a17;
-  --danger: #ff7d8c;
-  --danger-soft: #2d1218;
-  --danger-line: #5a2330;
+  --warn: #ff9f0a;
+  --warn-soft: #2e1f05;
+  --warn-line: #58390b;
+  --danger: #ff453a;
+  --danger-soft: #3a0f0c;
+  --danger-line: #6b1d17;
 }
 
 @layer base {
   html {
     background: var(--color-canvas);
     color: var(--color-ink);
-    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1,
   h2 {
     font-family: var(--font-display);
+    letter-spacing: -0.015em;
   }
   body {
     font-size: 0.875rem;
-    line-height: 1.4rem;
+    line-height: 1.43rem;
+    letter-spacing: -0.006em;
   }
   ::selection {
     background: var(--color-accent-soft);
@@ -156,11 +159,9 @@
 }
 
 @utility section-label {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
   color: var(--color-muted);
 }
 

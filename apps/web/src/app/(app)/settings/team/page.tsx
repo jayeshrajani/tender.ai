@@ -98,7 +98,7 @@ export default function TeamPage() {
         <Panel title="Members" description={`${t.members.length} people with access to this company.`} bodyClassName="px-0 pb-0">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Company members</caption>
-            <thead className="border-y border-line bg-subtle/50 text-2xs uppercase tracking-[0.05em] text-muted">
+            <thead className="border-y border-line text-xs text-muted">
               <tr>
                 <th scope="col" className="px-5 py-2.5 font-medium">Member</th>
                 <th scope="col" className="px-3 py-2.5 font-medium">Role</th>
